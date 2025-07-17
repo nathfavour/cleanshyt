@@ -1,46 +1,46 @@
-# cleanshyt README
+# cleanshyt
 
-This is the README for your extension "cleanshyt". After writing up a brief description, we recommend including the following sections.
+**cleanshyt** is a VS Code extension that transforms your import statements from messy to clean, readable, and maintainable code.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **Alias Imports:** Converts relative imports (e.g. `../../components/Layout`) to workspace aliases (e.g. `@/components/Layout`) based on your `tsconfig.json` or project configuration.
+- **Sort Imports:** Automatically sorts all import statements in a file by their source path, keeping your imports organized and easy to scan.
+- **Remove Unused Imports:** Detects and removes unused imports from your JS/TS files, keeping your code lean and free of clutter.
+- **Works on Files, Folders, and Workspace Folders:** All commands can be run on a single file, a folder, or an entire workspace folder.
+- **Context Menu Integration:** Commands are available via right-click in the editor, explorer, and command palette.
 
-For example if there is an image subfolder under your extension project workspace:
+## Usage
 
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+1. **Right-click** inside a JS/TS file or on a file/folder in the explorer and select one of:
+   - `cleanshyt.aliasImports`
+   - `cleanshyt.sortImports`
+   - `cleanshyt.removeUnusedImports`
+2. Or, open the **Command Palette** (`Ctrl+Shift+P` or `Cmd+Shift+P`) and run any of the above commands.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- Works with JavaScript and TypeScript files (`.js`, `.jsx`, `.ts`, `.tsx`).
+- For aliasing, your project should have a `tsconfig.json` with `compilerOptions.paths` and `baseUrl` configured.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+No settings are required. The extension automatically detects workspace configuration.
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- Aliasing only works if your workspace uses `tsconfig.json` path aliases.
+- Sorting and unused import removal may not handle all edge cases for very complex import patterns.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.0.1
 
-### 1.0.0
+- Initial release: alias, sort, and remove unused imports for JS/TS files.
 
-Initial release of ...
+---
 
-### 1.0.1
-
+**Enjoy clean imports with cleanshyt!**
 Fixed issue #.
 
 ### 1.1.0
