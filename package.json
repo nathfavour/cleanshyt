@@ -4,6 +4,10 @@
   "description": "turn your imports from shyt to fine shyt",
   "version": "0.0.1",
   "publisher": "nathfavour",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nathfavour/cleanshyt"
+  },
   "engines": {
     "vscode": "^1.102.0"
   },
