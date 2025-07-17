@@ -99,13 +99,22 @@ async function aliasImports(target: vscode.Uri) {
 
 // Utility: Sort import statements by file path (robust, multiline-safe)
 function sortImportStatements(text: string): string {
+	// Preserve directives like "use client" at the very top
+	const directiveRegex = /^\s*(['"]use\s+\w+['"];)/gm;
+	const directives: string[] = [];
+	let textWithoutDirectives = text;
+	textWithoutDirectives = textWithoutDirectives.replace(directiveRegex, (match) => {
+		directives.push(match.trim());
+		return '';
+	});
+
 	// Match complete import statements (including multiline ones)
 	const importRegex = /import\s+(?:[^;]+?from\s+['"'][^'"]*['"]|[^;]+?);/gs;
-	const imports = text.match(importRegex) || [];
-	
+	const imports = textWithoutDirectives.match(importRegex) || [];
+
 	// Remove all import statements from the text
-	const textWithoutImports = text.replace(importRegex, '').trim();
-	
+	let codeWithoutImports = textWithoutDirectives.replace(importRegex, '').trim();
+
 	// Sort imports by their source path (from '...')
 	imports.sort((a, b) => {
 		const aMatch = a.match(/from\s+['"](.*?)['"]/);
@@ -114,25 +123,19 @@ function sortImportStatements(text: string): string {
 		const bPath = bMatch?.[1] || '';
 		return aPath.localeCompare(bPath);
 	});
-	
-	// Reconstruct the file with sorted imports at the top
-	const sortedImports = imports.join('\n');
-	
-	// Find the first non-import, non-blank line to determine where to place imports
-	const lines = textWithoutImports.split('\n');
-	let firstCodeLineIndex = 0;
-	while (firstCodeLineIndex < lines.length && lines[firstCodeLineIndex].trim() === '') {
-		firstCodeLineIndex++;
-	}
-	
-	// Reconstruct with proper spacing
+
+	// Reconstruct the file with directives, sorted imports, and code
 	let result = '';
-	if (imports.length > 0) {
-		result += sortedImports + '\n\n';
+	if (directives.length > 0) {
+		result += directives.join('\n') + '\n';
 	}
-	result += textWithoutImports;
-	
-	return result;
+	if (imports.length > 0) {
+		result += imports.join('\n') + '\n';
+	}
+	if (codeWithoutImports.length > 0) {
+		result += '\n' + codeWithoutImports.replace(/^\s+/, '');
+	}
+	return result.trimEnd() + '\n';
 }
 
 // Command: Sort Imports
