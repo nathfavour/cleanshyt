@@ -99,42 +99,39 @@ async function aliasImports(target: vscode.Uri) {
 
 // Utility: Sort import statements by file path (robust, multiline-safe)
 function sortImportStatements(text: string): string {
-	const lines = text.split('\n');
-	const importBlocks: string[] = [];
-	const otherLines: string[] = [];
-	let i = 0;
-	while (i < lines.length) {
-		// Detect start of import block
-		if (/^\s*import\s/.test(lines[i])) {
-			let importBlock = lines[i];
-			// Continue until we reach a line ending with ';' or a line not part of the import
-			while (
-				!importBlock.trim().endsWith(';') &&
-				i + 1 < lines.length &&
-				(/^\s/.test(lines[i + 1]) || lines[i + 1].trim() === '')
-			) {
-				i++;
-				importBlock += '\n' + lines[i];
-			}
-			importBlocks.push(importBlock);
-		} else {
-			otherLines.push(lines[i]);
-		}
-		i++;
-	}
-	// Sort import blocks by their source path (from '...')
-	importBlocks.sort((a, b) => {
+	// Match complete import statements (including multiline ones)
+	const importRegex = /import\s+(?:[^;]+?from\s+['"'][^'"]*['"]|[^;]+?);/gs;
+	const imports = text.match(importRegex) || [];
+	
+	// Remove all import statements from the text
+	const textWithoutImports = text.replace(importRegex, '').trim();
+	
+	// Sort imports by their source path (from '...')
+	imports.sort((a, b) => {
 		const aMatch = a.match(/from\s+['"](.*?)['"]/);
 		const bMatch = b.match(/from\s+['"](.*?)['"]/);
-		return (aMatch?.[1] || '').localeCompare(bMatch?.[1] || '');
+		const aPath = aMatch?.[1] || '';
+		const bPath = bMatch?.[1] || '';
+		return aPath.localeCompare(bPath);
 	});
-	// Reconstruct file: sorted imports + other lines (preserve original spacing)
-	const result = [
-		...importBlocks,
-		// Add a blank line between imports and rest if not already present
-		otherLines.length && importBlocks.length ? '' : '',
-		...otherLines
-	].join('\n');
+	
+	// Reconstruct the file with sorted imports at the top
+	const sortedImports = imports.join('\n');
+	
+	// Find the first non-import, non-blank line to determine where to place imports
+	const lines = textWithoutImports.split('\n');
+	let firstCodeLineIndex = 0;
+	while (firstCodeLineIndex < lines.length && lines[firstCodeLineIndex].trim() === '') {
+		firstCodeLineIndex++;
+	}
+	
+	// Reconstruct with proper spacing
+	let result = '';
+	if (imports.length > 0) {
+		result += sortedImports + '\n\n';
+	}
+	result += textWithoutImports;
+	
 	return result;
 }
 
@@ -175,7 +172,7 @@ function removeUnusedImportsFromText(text: string): string {
 		if (imports.includes('{')) {
 			const namedImports = imports.match(/{([^}]*)}/)?.[1].split(',').map((i: string) => i.trim()).filter(Boolean) || [];
 			const used = namedImports.filter((i: string) => usedIdentifiers.has(i));
-			if (used.length === 0) return '';
+			if (used.length === 0) {return '';}
 			return match.replace(/{[^}]*}/, `{ ${used.join(', ')} }`);
 		}
 		if (imports && !usedIdentifiers.has(imports.replace(/['"]/g, ''))) {
@@ -211,15 +208,15 @@ async function removeUnusedImports(target: vscode.Uri) {
 export function activate(context: vscode.ExtensionContext) {
 	const aliasCmd = vscode.commands.registerCommand('cleanshyt.aliasImports', async (uri?: vscode.Uri) => {
 		const target = uri || vscode.window.activeTextEditor?.document.uri;
-		if (target) await aliasImports(target);
+		if (target) {await aliasImports(target);}
 	});
 	const sortCmd = vscode.commands.registerCommand('cleanshyt.sortImports', async (uri?: vscode.Uri) => {
 		const target = uri || vscode.window.activeTextEditor?.document.uri;
-		if (target) await sortImports(target);
+		if (target) {await sortImports(target);}
 	});
 	const removeCmd = vscode.commands.registerCommand('cleanshyt.removeUnusedImports', async (uri?: vscode.Uri) => {
 		const target = uri || vscode.window.activeTextEditor?.document.uri;
-		if (target) await removeUnusedImports(target);
+		if (target) {await removeUnusedImports(target);}
 	});
 
 	context.subscriptions.push(aliasCmd, sortCmd, removeCmd);
@@ -227,27 +224,28 @@ export function activate(context: vscode.ExtensionContext) {
 	// Editor context menu
 	context.subscriptions.push(vscode.commands.registerCommand('cleanshyt.editor.aliasImports', async () => {
 		const target = vscode.window.activeTextEditor?.document.uri;
-		if (target) await aliasImports(target);
+		if (target) {await aliasImports(target);}
 	}));
 	context.subscriptions.push(vscode.commands.registerCommand('cleanshyt.editor.sortImports', async () => {
 		const target = vscode.window.activeTextEditor?.document.uri;
-		if (target) await sortImports(target);
+		if (target) {await sortImports(target);}
 	}));
 	context.subscriptions.push(vscode.commands.registerCommand('cleanshyt.editor.removeUnusedImports', async () => {
 		const target = vscode.window.activeTextEditor?.document.uri;
-		if (target) await removeUnusedImports(target);
+		if (target) {await removeUnusedImports(target);}
 	}));
 
 	// Explorer context menu
 	context.subscriptions.push(vscode.commands.registerCommand('cleanshyt.explorer.aliasImports', async (uri: vscode.Uri) => {
-		if (uri) await aliasImports(uri);
+		if (uri) {await aliasImports(uri);}
 	}));
 	context.subscriptions.push(vscode.commands.registerCommand('cleanshyt.explorer.sortImports', async (uri: vscode.Uri) => {
-		if (uri) await sortImports(uri);
+		if (uri) {await sortImports(uri);}
 	}));
 	context.subscriptions.push(vscode.commands.registerCommand('cleanshyt.explorer.removeUnusedImports', async (uri: vscode.Uri) => {
-		if (uri) await removeUnusedImports(uri);
+		if (uri) {await removeUnusedImports(uri);}
 	}));
 }
+
 
 export function deactivate() {}
