@@ -2,8 +2,9 @@
   "name": "cleanshyt",
   "displayName": "cleanshyt",
   "description": "turn your imports from shyt to fine shyt",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "publisher": "nathfavour",
+  "icon": "public/cleanshyt.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/nathfavour/cleanshyt"
